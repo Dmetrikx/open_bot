@@ -1,7 +1,7 @@
 import openai
 from config import OPENAI_API_KEY
 
-def ask_openai(prompt, system_message="You are a helpful assistant.", model="gpt-3.5-turbo", max_tokens=150):
+def ask_openai(prompt, system_message="You are a helpful assistant.", model="gpt-3.5-turbo-0125", max_tokens=200):
     """Send a prompt to OpenAI with a system message (persona) and return the response text."""
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
     response = client.chat.completions.create(
