@@ -1,11 +1,11 @@
-import openai
+"""OpenAI and Grok (xAI SDK) client utilities for chat and image analysis."""
 import base64
-import requests
 import os
+import openai
+import requests
 from config import OPENAI_API_KEY
-
 from xai_sdk import Client as XaiClient
-from xai_sdk.chat import user as xai_user, system as xai_system,image
+from xai_sdk.chat import user as xai_user, system as xai_system, image
 
 def ask_openai(prompt, system_message="You are a helpful assistant.", model="gpt-3.5-turbo-0125", max_tokens=200, provider="openai"):
     """Send a prompt to OpenAI or Grok with a system message (persona) and return the response text."""
@@ -64,11 +64,14 @@ def image_opinion_openai(image_url, system_message="You are a helpful assistant.
         ],
         "max_tokens": max_tokens
     }
-    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers=headers,
+        json=payload
+    )
     if response.status_code == 200:
         return response.json()["choices"][0]["message"]["content"].strip()
-    else:
-        return f"Error analyzing image: {response.status_code} - {response.text}"
+    return f"Error analyzing image: {response.status_code} - {response.text}"
 
 def image_opinion_grok(image_url, system_message="You are a helpful assistant.", custom_prompt=None):
     """Send an image (from URL or attachment) to Grok (xAI SDK) and return the response text. Optionally use a custom prompt and persona."""
@@ -81,7 +84,7 @@ def image_opinion_grok(image_url, system_message="You are a helpful assistant.",
         img_response = requests.get(image_url)
         img_response.raise_for_status()
         base64_image = base64.b64encode(img_response.content).decode('utf-8')
-    except Exception as e:
+    except requests.RequestException as e:
         return f"Error downloading or encoding image: {e}"
     client = XaiClient(api_key=xai_api_key)
     chat = client.chat.create(model="grok-4")

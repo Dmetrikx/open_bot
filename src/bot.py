@@ -1,8 +1,10 @@
+"""Discord bot with OpenAI and Grok integration for persona-driven responses and image analysis."""
+import asyncio
+from datetime import datetime, timedelta, timezone
 import discord
 from discord.ext import commands
 from config import DISCORD_TOKEN
 from openai_client import ask_openai, image_opinion_openai
-import asyncio
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -60,7 +62,14 @@ async def ask(ctx, *, prompt: str):
     if prompt_words and prompt_words[0].lower() in ["grok", "openai"]:
         provider = prompt_words[0].lower()
         prompt = " ".join(prompt_words[1:])
-    response = await asyncio.to_thread(ask_openai, prompt, system_message=PERSONA, model="gpt-3.5-turbo-0125", provider=provider)
+    response = await asyncio.to_thread(
+        ask_openai,
+        prompt,
+        system_message=PERSONA,
+        model="gpt-3.5-turbo-0125",
+        provider=provider,
+        max_tokens=512
+    )
     # Send response in 2000-character pieces
     for i in range(0, len(response), 2000):
         await ctx.send(response[i:i+2000])
@@ -78,7 +87,14 @@ async def opinion(ctx, num_messages: int = 10):
     # Check for provider override in command
     if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
         provider = ctx.message.content.split()[1].lower()
-    response = await asyncio.to_thread(ask_openai, "What is your opinion on the recent conversation?", system_message=system_message, model="gpt-3.5-turbo-0125", provider=provider)
+    response = await asyncio.to_thread(
+        ask_openai,
+        "What is your opinion on the recent conversation?",
+        system_message=system_message,
+        model="gpt-3.5-turbo-0125",
+        provider=provider,
+        max_tokens=512
+    )
     for i in range(0, len(response), 2000):
         await ctx.send(response[i:i+2000])
 
@@ -102,7 +118,6 @@ async def who_won(ctx, num_messages: int = 100):
 async def user_opinion(ctx, member: discord.Member, days: int = 3, max_messages: int = 200):
     """Analyze all messages sent by a user over the last few days and form an opinion on that user."""
     await ctx.send(f'Analyzing {member.display_name}...')
-    from datetime import datetime, timedelta, timezone
     now = datetime.now(timezone.utc)
     after = now - timedelta(days=days)
     messages = []
