@@ -44,9 +44,9 @@ Form an opinion on an image by:
 - Providing an image URL: `!image_opinion https://example.com/image.jpg` (optionally add a custom prompt after the URL)
 - Replying to a message with an image attachment and typing `!image_opinion` (optionally add a custom prompt after the command)
 
-- `!image_opinion https://example.com/image.jpg What do you think of this meme?`
-- *(attach an image)* `!image_opinion Give a funny take on this picture.`
-- *(reply to an image)* `!image_opinion Be controversial about this photo.`
+- Example: `!image_opinion https://example.com/image.jpg What do you think of this meme?`
+- Example: `!image_opinion Give a funny take on this picture.`
+- Example: *(reply to an image)* `!image_opinion Be controversial about this photo.`
 
 
 ### Provider Override (OpenAI/Grok)
