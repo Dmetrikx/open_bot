@@ -7,6 +7,38 @@ A scalable Discord bot using Python, Discord.py, and OpenAI.
 - OpenAI integration for intelligent, persona-driven responses
 - Simple command handler (e.g., `!ping`, `!ask`, `!opinion`, `!who_won`)
 
+## Commands & Usage
+Interact with the bot using the following commands in any Discord channel where the bot is present:
+
+### `!ping`
+Check if the bot is online.
+- Example: `!ping`
+
+### `!ask <question>`
+Ask the bot any question and get a persona-driven response.
+- Example: `!ask What do you think about Boston politics?`
+- Example: `!ask Who would win in a fight, Batman or Superman?`
+
+### `!opinion [num_messages]`
+Get the bot's opinion or summary on the last few messages in the channel.
+- Example: `!opinion` (default: 10 messages)
+- Example: `!opinion 20` (analyzes last 20 messages)
+
+### `!who_won [num_messages]`
+Analyze recent arguments and determine who won.
+- Example: `!who_won` (default: 100 messages)
+- Example: `!who_won 50` (analyzes last 50 messages)
+
+### `!user_opinion <@user> [days] [max_messages]`
+Get the bot's opinion on a specific user based on their recent messages.
+- Example: `!user_opinion @Alice` (default: 3 days, 200 messages)
+- Example: `!user_opinion @Bob 5 100` (analyzes Bob's last 100 messages over 5 days)
+
+### `!most <question>`
+Ask who is the most X or most likely to do Y in the chat.
+- Example: `!most helpful` (default: last 100 messages)
+- Example: `!most Who is most likely to start an argument?`
+
 ## Setup
 1. Copy your environment variables to a `.env` file (see `.env.example`).
 2. Install dependencies:
