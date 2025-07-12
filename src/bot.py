@@ -1,8 +1,8 @@
 """Discord bot with OpenAI and Grok integration for persona-driven responses and image analysis."""
-import asyncio
-from datetime import datetime, timedelta, timezone
 import discord
 from discord.ext import commands
+import asyncio
+from datetime import datetime, timedelta, timezone
 from config import DISCORD_TOKEN
 from openai_client import ask_openai, image_opinion_openai
 
@@ -35,6 +35,7 @@ PERSONA = (
 )
 
 def format_channel_history(ctx, num_messages):
+    """Fetch and format the last num_messages from the channel history."""
     messages = []
     async def fetch():
         async for message in ctx.channel.history(limit=num_messages):
@@ -111,7 +112,11 @@ async def who_won(ctx, num_messages: int = 100):
     provider = "openai"
     if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
         provider = ctx.message.content.split()[1].lower()
-    response = ask_openai("Who won the arguments in the recent conversation?", system_message=system_message, provider=provider)
+    response = ask_openai(
+        "Who won the arguments in the recent conversation?",
+        system_message=system_message,
+        provider=provider
+    )
     await ctx.send(response)
 
 @bot.command()
@@ -134,12 +139,16 @@ async def user_opinion(ctx, member: discord.Member, days: int = 3, max_messages:
     provider = "openai"
     if ctx.message.content.split()[2:3] and ctx.message.content.split()[2].lower() in ["grok", "openai"]:
         provider = ctx.message.content.split()[2].lower()
-    response = ask_openai(f"What is your opinion of {member.display_name}?", system_message=system_message, provider=provider)
+    response = ask_openai(
+        f"What is your opinion of {member.display_name}?",
+        system_message=system_message,
+        provider=provider
+    )
     await ctx.send(response)
 
 @bot.command()
 async def most(ctx, *, question: str):
-    """Generalized command to ask who is the most X or most likely to do Y in the chat. Handles both a single word or a sentence."""
+    """Generalized command to ask who is the most X or most likely to do Y in the chat."""
     num_messages = 100
     await ctx.send(f"Analyzing: {question} (last {num_messages} messages)...")
     provider = "openai"
@@ -168,22 +177,24 @@ async def most(ctx, *, question: str):
         f"Among the most active users ({', '.join(active_user_names)}), answer the following question: {question}. "
         f"Explain your reasoning as Coonbot."
     )
-    response = ask_openai(prompt, system_message=system_message, provider=provider)
+    response = ask_openai(
+        prompt,
+        system_message=system_message,
+        provider=provider
+    )
     await ctx.send(response)
+
 @bot.command()
 async def image_opinion(ctx):
-    """Form an opinion on an image (attachment, URL, or reply to an image). Optionally provide a custom prompt. Use 'grok' to analyze with Grok."""
+    """Form an opinion on an image (attachment, URL, or reply to an image)."""
     image_url = None
     custom_prompt = None
     provider = "openai"
     content_args = ctx.message.content.split()
-
     # Check for provider keyword
     if len(content_args) > 1 and content_args[1].lower() == "grok":
         provider = "grok"
-        # Shift arguments so image URL or prompt comes after 'grok'
         content_args = [content_args[0]] + content_args[2:]
-
     # Check for attachment first
     if ctx.message.attachments:
         image_url = ctx.message.attachments[0].url
@@ -197,8 +208,11 @@ async def image_opinion(ctx):
                 image_url = replied_msg.attachments[0].url
             if len(content_args) > 1:
                 custom_prompt = " ".join(content_args[1:])
-        except Exception as e:
+        except discord.NotFound as e:
             await ctx.send(f"Could not fetch replied message: {e}")
+            return
+        except discord.HTTPException as e:
+            await ctx.send(f"Discord API error: {e}")
             return
     # If no attachment or reply, check for image URL in message content
     elif len(content_args) > 1:
@@ -216,22 +230,34 @@ async def image_opinion(ctx):
     try:
         if provider == "grok":
             from openai_client import image_opinion_grok
-            opinion = image_opinion_grok(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
+            opinion_result = image_opinion_grok(
+                image_url,
+                system_message=PERSONA,
+                custom_prompt=custom_prompt
+            )
         else:
-            opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
-        await ctx.send(opinion)
+            opinion_result = image_opinion_openai(
+                image_url,
+                system_message=PERSONA,
+                custom_prompt=custom_prompt
+            )
+        await ctx.send(opinion_result)
+    except ImportError as e:
+        await ctx.send(f"Import error: {e}")
     except Exception as e:
         await ctx.send(f"Error analyzing image: {e}")
+
 # Add more commands or cogs here for extensibility
 @bot.command()
 @commands.is_owner()
 async def clear_commands(ctx):
     """Clear all global slash commands from Discord."""
-    bot.tree.clear_commands(guild=None)  # Remove await here
+    bot.tree.clear_commands(guild=None)
     await bot.tree.sync()
     await ctx.send("Cleared all global slash commands.")
 
 def main():
+    """Run the Discord bot."""
     bot.run(DISCORD_TOKEN)
 
 if __name__ == "__main__":
