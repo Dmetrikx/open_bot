@@ -16,8 +16,8 @@ def ask_openai(prompt, system_message="You are a helpful assistant.", model="gpt
     )
     return response.choices[0].message.content.strip()
 
-def image_opinion_openai(image_url, system_message="You are a helpful assistant.", model="gpt-4o", max_tokens=200):
-    """Send an image (from URL or attachment) to OpenAI's vision endpoint and return the response text."""
+def image_opinion_openai(image_url, system_message="You are a helpful assistant.", model="gpt-4o", max_tokens=200, custom_prompt=None):
+    """Send an image (from URL or attachment) to OpenAI's vision endpoint and return the response text. Optionally use a custom prompt."""
     # Download image and encode as base64
     try:
         img_response = requests.get(image_url)
@@ -29,6 +29,7 @@ def image_opinion_openai(image_url, system_message="You are a helpful assistant.
         "Content-Type": "application/json",
         "Authorization": f"Bearer {OPENAI_API_KEY}"
     }
+    prompt_text = custom_prompt if custom_prompt else "Form an opinion on this image. Try to be controversial or humorous."
     payload = {
         "model": model,
         "messages": [
@@ -39,7 +40,7 @@ def image_opinion_openai(image_url, system_message="You are a helpful assistant.
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": "Form an opinion on this image. Try to controversial or humorous."},
+                    {"type": "text", "text": prompt_text},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
                 ]
             }

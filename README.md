@@ -39,11 +39,18 @@ Ask who is the most X or most likely to do Y in the chat.
 - Example: `!most helpful` (default: last 100 messages)
 - Example: `!most Who is most likely to start an argument?`
 
-### `!image_opinion <image_url>` / attach an image / reply to an image
+### `!image_opinion <image_url> [custom_prompt]` / attach an image / reply to an image
 Form an opinion on an image by:
-- Attaching an image and typing `!image_opinion`
-- Providing an image URL: `!image_opinion https://example.com/image.jpg`
-- Replying to a message with an image attachment and typing `!image_opinion`
+- Attaching an image and typing `!image_opinion` (optionally add a custom prompt after the command)
+- Providing an image URL: `!image_opinion https://example.com/image.jpg` (optionally add a custom prompt after the URL)
+- Replying to a message with an image attachment and typing `!image_opinion` (optionally add a custom prompt after the command)
+
+**Custom prompt usage examples:**
+- `!image_opinion https://example.com/image.jpg What do you think of this meme?`
+- *(attach an image)* `!image_opinion Give a funny take on this picture.`
+- *(reply to an image)* `!image_opinion Be controversial about this photo.`
+
+If no custom prompt is provided, the bot will use its default style.
 
 ## Setup
 1. Copy your environment variables to a `.env` file (see `.env.example`).

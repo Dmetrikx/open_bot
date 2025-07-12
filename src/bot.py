@@ -128,29 +128,42 @@ async def most(ctx, *, question: str):
     await ctx.send(response)
 @bot.command()
 async def image_opinion(ctx):
-    """Form an opinion on an image (attachment, URL, or reply to an image)."""
+    """Form an opinion on an image (attachment, URL, or reply to an image). Optionally provide a custom prompt."""
     image_url = None
-    # Check for attachment
+    custom_prompt = None
+    content_args = ctx.message.content.split()
+    # Check for attachment first
     if ctx.message.attachments:
         image_url = ctx.message.attachments[0].url
-    # Check for image URL in message content
-    elif len(ctx.message.content.split()) > 1:
-        image_url = ctx.message.content.split()[1]
-    # Check if replying to a message with an image
+        if len(content_args) > 1:
+            custom_prompt = " ".join(content_args[1:])
+    # If no attachment, check for image URL in message content
+    elif len(content_args) > 1:
+        possible_url = content_args[1]
+        if possible_url.startswith("http://") or possible_url.startswith("https://"):
+            image_url = possible_url
+            if len(content_args) > 2:
+                custom_prompt = " ".join(content_args[2:])
+        else:
+            image_url = None
+            custom_prompt = " ".join(content_args[1:])
+    # If replying to a message with an image
     elif ctx.message.reference:
         try:
             replied_msg = await ctx.channel.fetch_message(ctx.message.reference.message_id)
             if replied_msg.attachments:
                 image_url = replied_msg.attachments[0].url
+            if len(content_args) > 1:
+                custom_prompt = " ".join(content_args[1:])
         except Exception as e:
             await ctx.send(f"Could not fetch replied message: {e}")
             return
     if not image_url:
-        await ctx.send("Please attach an image, provide an image URL, or reply to a message with an image.")
+        await ctx.send("Please attach an image, provide a valid image URL (starting with http/https), or reply to a message with an image.")
         return
     await ctx.send("Analyzing image, one sec...")
     try:
-        opinion = image_opinion_openai(image_url, system_message=PERSONA)
+        opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
         await ctx.send(opinion)
     except Exception as e:
         await ctx.send(f"Error analyzing image: {e}")
