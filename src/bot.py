@@ -8,7 +8,6 @@ from openai_client import ask_openai, image_opinion_openai
 
 intents = discord.Intents.default()
 intents.message_content = True
-#coment
 
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
