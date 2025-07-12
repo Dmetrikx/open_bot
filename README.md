@@ -2,11 +2,13 @@
 
 A scalable Discord bot using Python, Discord.py, and OpenAI.
 
+---
 ## Features
 - Modular structure for easy feature expansion
 - OpenAI integration for intelligent, persona-driven responses
 - Simple command handler (e.g., `!ping`, `!ask`, `!opinion`, `!who_won`)
 
+---
 ## Commands & Usage
 Interact with the bot using the following commands in any Discord channel where the bot is present:
 
@@ -51,6 +53,7 @@ Form an opinion on an image by:
 
 If no custom prompt is provided, the bot will use its default style.
 
+---
 #### Provider Override for Image Opinion (OpenAI/Grok)
 You can use Grok for image analysis by adding `grok` after the command:
 - Example: `!image_opinion grok <image_url> [custom_prompt]`
@@ -59,6 +62,7 @@ You can use Grok for image analysis by adding `grok` after the command:
 
 If no provider is specified, OpenAI is used by default.
 
+---
 ### Provider Override (OpenAI/Grok)
 You can override the AI provider for any command that uses language models by prefixing your prompt with `grok` or `openai`:
 - Example: `!ask grok Who are you?` (uses Grok)
@@ -70,6 +74,7 @@ You can override the AI provider for any command that uses language models by pr
 
 If no provider is specified, OpenAI is used by default.
 
+---
 ## Setup
 1. Copy your environment variables to a `.env` file (see `.env.example`).
 2. Install dependencies:
@@ -81,16 +86,20 @@ If no provider is specified, OpenAI is used by default.
    python -m src.bot
    ```
 
+---
 ## Project Structure
 - `src/` - Main source code (commands, configuration, OpenAI integration)
 - `tests/` - Unit tests
 
+---
 ## Adding Features
 Add new commands or cogs in the `src/` directory for extensibility.
 
+---
 ## Notes
 - The `.env` file is gitignored for security.
 - See `src/bot.py` for example commands and persona prompts.
 
+---
 ### Setup for Grok
 To use Grok (including for image analysis), you must install `xai-sdk` and set the `XAI_API_KEY` environment variable. See requirements.txt for details.
