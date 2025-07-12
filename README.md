@@ -39,6 +39,12 @@ Ask who is the most X or most likely to do Y in the chat.
 - Example: `!most helpful` (default: last 100 messages)
 - Example: `!most Who is most likely to start an argument?`
 
+### `!image_opinion <image_url>` / attach an image / reply to an image
+Form an opinion on an image by:
+- Attaching an image and typing `!image_opinion`
+- Providing an image URL: `!image_opinion https://example.com/image.jpg`
+- Replying to a message with an image attachment and typing `!image_opinion`
+
 ## Setup
 1. Copy your environment variables to a `.env` file (see `.env.example`).
 2. Install dependencies:

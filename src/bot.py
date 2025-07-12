@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from config import DISCORD_TOKEN
-from openai_client import ask_openai
+from openai_client import ask_openai, image_opinion_openai
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -126,6 +126,34 @@ async def most(ctx, *, question: str):
     )
     response = ask_openai(prompt, system_message=system_message)
     await ctx.send(response)
+@bot.command()
+async def image_opinion(ctx):
+    """Form an opinion on an image (attachment, URL, or reply to an image)."""
+    image_url = None
+    # Check for attachment
+    if ctx.message.attachments:
+        image_url = ctx.message.attachments[0].url
+    # Check for image URL in message content
+    elif len(ctx.message.content.split()) > 1:
+        image_url = ctx.message.content.split()[1]
+    # Check if replying to a message with an image
+    elif ctx.message.reference:
+        try:
+            replied_msg = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            if replied_msg.attachments:
+                image_url = replied_msg.attachments[0].url
+        except Exception as e:
+            await ctx.send(f"Could not fetch replied message: {e}")
+            return
+    if not image_url:
+        await ctx.send("Please attach an image, provide an image URL, or reply to a message with an image.")
+        return
+    await ctx.send("Analyzing image, one sec...")
+    try:
+        opinion = image_opinion_openai(image_url, system_message=PERSONA)
+        await ctx.send(opinion)
+    except Exception as e:
+        await ctx.send(f"Error analyzing image: {e}")
 # Add more commands or cogs here for extensibility
 @bot.command()
 @commands.is_owner()
