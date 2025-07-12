@@ -41,13 +41,11 @@ Ask who is the most X or most likely to do Y in the chat.
 ### `!image_opinion <image_url> [custom_prompt]` / attach an image / reply to an image
 Form an opinion on an image by:
 - Attaching an image and typing `!image_opinion` (optionally add a custom prompt after the command)
+  - Example: `!image_opinion Give a funny take on this picture.`
 - Providing an image URL: `!image_opinion https://example.com/image.jpg` (optionally add a custom prompt after the URL)
+  - Example: `!image_opinion https://example.com/image.jpg What do you think of this meme?`
 - Replying to a message with an image attachment and typing `!image_opinion` (optionally add a custom prompt after the command)
-
-- Example: `!image_opinion https://example.com/image.jpg What do you think of this meme?`
-- Example: `!image_opinion Give a funny take on this picture.`
-- Example: *(reply to an image)* `!image_opinion Be controversial about this photo.`
-
+  - Example: *(reply to an image)* `!image_opinion Be controversial about this photo.`
 
 ### Provider Override (OpenAI/Grok)
 You can override the AI provider for any command that uses language models by prefixing your prompt with `grok` or `openai`:
