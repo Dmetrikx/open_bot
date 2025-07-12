@@ -90,7 +90,6 @@ def image_opinion_grok(image_url, system_message="You are a helpful assistant.",
         return f"Error downloading or encoding image: {e}"
     client = XaiClient(api_key=xai_api_key)
     chat = client.chat.create(model="grok-4")
-    # Pass persona/system_message as a system message
     chat.append(xai_system(system_message))
     prompt_text = custom_prompt if custom_prompt else "What's in this image?"
     chat.append(
