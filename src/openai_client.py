@@ -39,7 +39,7 @@ def image_opinion_openai(image_url, system_message="You are a helpful assistant.
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": "Form an opinion on this image."},
+                    {"type": "text", "text": "Form an opinion on this image. Try to controversial or humorous."},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
                 ]
             }
