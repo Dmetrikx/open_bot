@@ -52,6 +52,17 @@ Form an opinion on an image by:
 
 If no custom prompt is provided, the bot will use its default style.
 
+### Provider Override (OpenAI/Grok)
+You can override the AI provider for any command that uses language models by prefixing your prompt with `grok` or `openai`:
+- Example: `!ask grok Who are you?` (uses Grok)
+- Example: `!ask openai Who are you?` (uses OpenAI)
+- Example: `!most grok Who is most likely to start an argument?`
+- Example: `!opinion grok` (uses Grok for opinion)
+- Example: `!who_won grok` (uses Grok for argument analysis)
+- Example: `!user_opinion @Alice grok` (uses Grok for user analysis)
+
+If no provider is specified, OpenAI is used by default.
+
 ## Setup
 1. Copy your environment variables to a `.env` file (see `.env.example`).
 2. Install dependencies:
@@ -73,3 +84,6 @@ Add new commands or cogs in the `src/` directory for extensibility.
 ## Notes
 - The `.env` file is gitignored for security.
 - See `src/bot.py` for example commands and persona prompts.
+
+### Setup for Grok
+To use Grok, you must install `xai-sdk` and set the `XAI_API_KEY` environment variable. See requirements.txt for details.

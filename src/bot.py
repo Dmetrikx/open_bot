@@ -52,9 +52,14 @@ async def ping(ctx):
 
 @bot.command()
 async def ask(ctx, *, prompt: str):
-    """Ask OpenAI a question and get a response with a defined persona."""
+    """Ask OpenAI or Grok a question and get a response with a defined persona."""
     await ctx.send('Thinking...')
-    response = ask_openai(prompt, system_message=PERSONA)
+    provider = "openai"
+    prompt_words = prompt.split()
+    if prompt_words and prompt_words[0].lower() in ["grok", "openai"]:
+        provider = prompt_words[0].lower()
+        prompt = " ".join(prompt_words[1:])
+    response = ask_openai(prompt, system_message=PERSONA, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -66,7 +71,11 @@ async def opinion(ctx, num_messages: int = 10):
         f"{PERSONA}\nHere are the last {num_messages} messages in this channel:\n{context_str}\n"
         "Form an opinion or summary about the conversation."
     )
-    response = ask_openai("What is your opinion on the recent conversation?", system_message=system_message)
+    provider = "openai"
+    # Check for provider override in command
+    if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
+        provider = ctx.message.content.split()[1].lower()
+    response = ask_openai("What is your opinion on the recent conversation?", system_message=system_message, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -79,7 +88,10 @@ async def who_won(ctx, num_messages: int = 100):
         "Based on the arguments and discussions, determine who won the arguments and why. "
         "Be specific and fair, and explain your reasoning."
     )
-    response = ask_openai("Who won the arguments in the recent conversation?", system_message=system_message)
+    provider = "openai"
+    if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
+        provider = ctx.message.content.split()[1].lower()
+    response = ask_openai("Who won the arguments in the recent conversation?", system_message=system_message, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -100,7 +112,10 @@ async def user_opinion(ctx, member: discord.Member, days: int = 3, max_messages:
     system_message = (
         f"Here are all the messages sent by {member.display_name} in the last {days} days in this channel:\n{context_str}\n"
     )
-    response = ask_openai(f"What is your opinion of {member.display_name}?", system_message=system_message)
+    provider = "openai"
+    if ctx.message.content.split()[2:3] and ctx.message.content.split()[2].lower() in ["grok", "openai"]:
+        provider = ctx.message.content.split()[2].lower()
+    response = ask_openai(f"What is your opinion of {member.display_name}?", system_message=system_message, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -108,6 +123,11 @@ async def most(ctx, *, question: str):
     """Generalized command to ask who is the most X or most likely to do Y in the chat. Handles both a single word or a sentence."""
     num_messages = 100
     await ctx.send(f"Analyzing: {question} (last {num_messages} messages)...")
+    provider = "openai"
+    question_words = question.split()
+    if question_words and question_words[0].lower() in ["grok", "openai"]:
+        provider = question_words[0].lower()
+        question = " ".join(question_words[1:])
     messages = []
     user_message_count = {}
     async for message in ctx.channel.history(limit=num_messages):
@@ -129,7 +149,7 @@ async def most(ctx, *, question: str):
         f"Among the most active users ({', '.join(active_user_names)}), answer the following question: {question}. "
         f"Explain your reasoning as Coonbot."
     )
-    response = ask_openai(prompt, system_message=system_message)
+    response = ask_openai(prompt, system_message=system_message, provider=provider)
     await ctx.send(response)
 @bot.command()
 async def image_opinion(ctx):

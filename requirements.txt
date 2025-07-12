@@ -4,3 +4,4 @@ python-dotenv
 google-api-python-client
 google-auth-oauthlib
 google-auth
+xai-sdk>=0.2.0
