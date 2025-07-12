@@ -74,3 +74,31 @@ def image_opinion_openai(image_url, system_message="You are a helpful assistant.
         return response.json()["choices"][0]["message"]["content"].strip()
     else:
         return f"Error analyzing image: {response.status_code} - {response.text}"
+
+def image_opinion_grok(image_url, system_message="You are a helpful assistant.", custom_prompt=None):
+    """Send an image (from URL or attachment) to Grok (xAI SDK) and return the response text. Optionally use a custom prompt and persona."""
+    if XaiClient is None:
+        raise ImportError("xai-sdk is not installed. Please install it to use Grok.")
+    xai_api_key = os.getenv("XAI_API_KEY")
+    if not xai_api_key:
+        raise ValueError("XAI_API_KEY environment variable not set.")
+    try:
+        img_response = requests.get(image_url)
+        img_response.raise_for_status()
+        base64_image = base64.b64encode(img_response.content).decode('utf-8')
+    except Exception as e:
+        return f"Error downloading or encoding image: {e}"
+    client = XaiClient(api_key=xai_api_key)
+    chat = client.chat.create(model="grok-4")
+    # Pass persona/system_message as a system message
+    chat.append(xai_system(system_message))
+    prompt_text = custom_prompt if custom_prompt else "What's in this image?"
+    chat.append(
+        xai_user(
+            prompt_text,
+            image_url=f"data:image/jpeg;base64,{base64_image}",
+            detail="high"
+        )
+    )
+    response = chat.sample()
+    return response.content.strip()

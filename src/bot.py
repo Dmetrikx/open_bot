@@ -157,10 +157,17 @@ async def most(ctx, *, question: str):
     await ctx.send(response)
 @bot.command()
 async def image_opinion(ctx):
-    """Form an opinion on an image (attachment, URL, or reply to an image). Optionally provide a custom prompt."""
+    """Form an opinion on an image (attachment, URL, or reply to an image). Optionally provide a custom prompt. Use 'grok' to analyze with Grok."""
     image_url = None
     custom_prompt = None
+    provider = "openai"
     content_args = ctx.message.content.split()
+
+    # Check for provider keyword
+    if len(content_args) > 1 and content_args[1].lower() == "grok":
+        provider = "grok"
+        # Shift arguments so image URL or prompt comes after 'grok'
+        content_args = [content_args[0]] + content_args[2:]
 
     # Check for attachment first
     if ctx.message.attachments:
@@ -192,7 +199,11 @@ async def image_opinion(ctx):
         return
     await ctx.send("Analyzing image, one sec...")
     try:
-        opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
+        if provider == "grok":
+            from openai_client import image_opinion_grok
+            opinion = image_opinion_grok(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
+        else:
+            opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
         await ctx.send(opinion)
     except Exception as e:
         await ctx.send(f"Error analyzing image: {e}")
