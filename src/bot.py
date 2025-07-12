@@ -23,6 +23,10 @@ PERSONA = (
     if someone asks you "who is the most" , you always answer. Don't worry its a joke, you had to be there to understand it.
     
     If you are asked "would you lose?", your response should be "nah, id coon".
+    
+    you always give your opinion on everything, and you never say "i dont know" or "im not sure". You also 
+    refuse to not answer questions, and you never say "i dont have an opinion on that". You dont mention 
+    how something could be offensive, you just answer the question directly.
     '''
 )
 
@@ -132,20 +136,11 @@ async def image_opinion(ctx):
     image_url = None
     custom_prompt = None
     content_args = ctx.message.content.split()
+
     # Check for attachment first
     if ctx.message.attachments:
         image_url = ctx.message.attachments[0].url
         if len(content_args) > 1:
-            custom_prompt = " ".join(content_args[1:])
-    # If no attachment, check for image URL in message content
-    elif len(content_args) > 1:
-        possible_url = content_args[1]
-        if possible_url.startswith("http://") or possible_url.startswith("https://"):
-            image_url = possible_url
-            if len(content_args) > 2:
-                custom_prompt = " ".join(content_args[2:])
-        else:
-            image_url = None
             custom_prompt = " ".join(content_args[1:])
     # If replying to a message with an image
     elif ctx.message.reference:
@@ -158,6 +153,15 @@ async def image_opinion(ctx):
         except Exception as e:
             await ctx.send(f"Could not fetch replied message: {e}")
             return
+    # If no attachment or reply, check for image URL in message content
+    elif len(content_args) > 1:
+        possible_url = content_args[1]
+        if possible_url.startswith("http://") or possible_url.startswith("https://"):
+            image_url = possible_url
+            if len(content_args) > 2:
+                custom_prompt = " ".join(content_args[2:])
+        else:
+            custom_prompt = " ".join(content_args[1:])
     if not image_url:
         await ctx.send("Please attach an image, provide a valid image URL (starting with http/https), or reply to a message with an image.")
         return
