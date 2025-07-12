@@ -61,12 +61,9 @@ async def ask(ctx, *, prompt: str):
         provider = prompt_words[0].lower()
         prompt = " ".join(prompt_words[1:])
     response = await asyncio.to_thread(ask_openai, prompt, system_message=PERSONA, model="gpt-3.5-turbo-0125", provider=provider)
-    # Discord message limit is 4000 characters
-    if len(response) > 4000:
-        for i in range(0, len(response), 4000):
-            await ctx.send(response[i:i+4000])
-    else:
-        await ctx.send(response)
+    # Send response in 2000-character pieces
+    for i in range(0, len(response), 2000):
+        await ctx.send(response[i:i+2000])
 
 @bot.command()
 async def opinion(ctx, num_messages: int = 10):
@@ -82,11 +79,8 @@ async def opinion(ctx, num_messages: int = 10):
     if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
         provider = ctx.message.content.split()[1].lower()
     response = await asyncio.to_thread(ask_openai, "What is your opinion on the recent conversation?", system_message=system_message, model="gpt-3.5-turbo-0125", provider=provider)
-    if len(response) > 4000:
-        for i in range(0, len(response), 4000):
-            await ctx.send(response[i:i+4000])
-    else:
-        await ctx.send(response)
+    for i in range(0, len(response), 2000):
+        await ctx.send(response[i:i+2000])
 
 @bot.command()
 async def who_won(ctx, num_messages: int = 100):
