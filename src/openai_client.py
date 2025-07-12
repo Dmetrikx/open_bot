@@ -4,13 +4,8 @@ import requests
 import os
 from config import OPENAI_API_KEY
 
-try:
-    from xai_sdk import Client as XaiClient
-    from xai_sdk.chat import user as xai_user, system as xai_system
-except ImportError:
-    XaiClient = None
-    xai_user = None
-    xai_system = None
+from xai_sdk import Client as XaiClient
+from xai_sdk.chat import user as xai_user, system as xai_system,image
 
 def ask_openai(prompt, system_message="You are a helpful assistant.", model="gpt-3.5-turbo-0125", max_tokens=200, provider="openai"):
     """Send a prompt to OpenAI or Grok with a system message (persona) and return the response text."""
@@ -95,8 +90,7 @@ def image_opinion_grok(image_url, system_message="You are a helpful assistant.",
     chat.append(
         xai_user(
             prompt_text,
-            image_url=f"data:image/jpeg;base64,{base64_image}",
-            detail="high"
+            image(image_url=f"data:image/jpeg;base64,{base64_image}", detail="high"),
         )
     )
     response = chat.sample()

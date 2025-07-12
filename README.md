@@ -45,12 +45,19 @@ Form an opinion on an image by:
 - Providing an image URL: `!image_opinion https://example.com/image.jpg` (optionally add a custom prompt after the URL)
 - Replying to a message with an image attachment and typing `!image_opinion` (optionally add a custom prompt after the command)
 
-**Custom prompt usage examples:**
 - `!image_opinion https://example.com/image.jpg What do you think of this meme?`
 - *(attach an image)* `!image_opinion Give a funny take on this picture.`
 - *(reply to an image)* `!image_opinion Be controversial about this photo.`
 
 If no custom prompt is provided, the bot will use its default style.
+
+#### Provider Override for Image Opinion (OpenAI/Grok)
+You can use Grok for image analysis by adding `grok` after the command:
+- Example: `!image_opinion grok <image_url> [custom_prompt]`
+- Example: *(attach an image)* `!image_opinion grok Be controversial about this photo.`
+- Example: *(reply to an image)* `!image_opinion grok`
+
+If no provider is specified, OpenAI is used by default.
 
 ### Provider Override (OpenAI/Grok)
 You can override the AI provider for any command that uses language models by prefixing your prompt with `grok` or `openai`:
@@ -86,4 +93,4 @@ Add new commands or cogs in the `src/` directory for extensibility.
 - See `src/bot.py` for example commands and persona prompts.
 
 ### Setup for Grok
-To use Grok, you must install `xai-sdk` and set the `XAI_API_KEY` environment variable. See requirements.txt for details.
+To use Grok (including for image analysis), you must install `xai-sdk` and set the `XAI_API_KEY` environment variable. See requirements.txt for details.
