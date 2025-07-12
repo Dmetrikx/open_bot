@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from config import DISCORD_TOKEN
 from openai_client import ask_openai, image_opinion_openai
+import asyncio
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -52,10 +53,17 @@ async def ping(ctx):
 
 @bot.command()
 async def ask(ctx, *, prompt: str):
-    """Ask OpenAI a question and get a response with a defined persona."""
+    """Ask OpenAI or Grok a question and get a response with a defined persona."""
     await ctx.send('Thinking...')
-    response = ask_openai(prompt, system_message=PERSONA)
-    await ctx.send(response)
+    provider = "openai"
+    prompt_words = prompt.split()
+    if prompt_words and prompt_words[0].lower() in ["grok", "openai"]:
+        provider = prompt_words[0].lower()
+        prompt = " ".join(prompt_words[1:])
+    response = await asyncio.to_thread(ask_openai, prompt, system_message=PERSONA, model="gpt-3.5-turbo-0125", provider=provider)
+    # Send response in 2000-character pieces
+    for i in range(0, len(response), 2000):
+        await ctx.send(response[i:i+2000])
 
 @bot.command()
 async def opinion(ctx, num_messages: int = 10):
@@ -66,8 +74,13 @@ async def opinion(ctx, num_messages: int = 10):
         f"{PERSONA}\nHere are the last {num_messages} messages in this channel:\n{context_str}\n"
         "Form an opinion or summary about the conversation."
     )
-    response = ask_openai("What is your opinion on the recent conversation?", system_message=system_message)
-    await ctx.send(response)
+    provider = "openai"
+    # Check for provider override in command
+    if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
+        provider = ctx.message.content.split()[1].lower()
+    response = await asyncio.to_thread(ask_openai, "What is your opinion on the recent conversation?", system_message=system_message, model="gpt-3.5-turbo-0125", provider=provider)
+    for i in range(0, len(response), 2000):
+        await ctx.send(response[i:i+2000])
 
 @bot.command()
 async def who_won(ctx, num_messages: int = 100):
@@ -79,7 +92,10 @@ async def who_won(ctx, num_messages: int = 100):
         "Based on the arguments and discussions, determine who won the arguments and why. "
         "Be specific and fair, and explain your reasoning."
     )
-    response = ask_openai("Who won the arguments in the recent conversation?", system_message=system_message)
+    provider = "openai"
+    if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
+        provider = ctx.message.content.split()[1].lower()
+    response = ask_openai("Who won the arguments in the recent conversation?", system_message=system_message, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -100,7 +116,10 @@ async def user_opinion(ctx, member: discord.Member, days: int = 3, max_messages:
     system_message = (
         f"Here are all the messages sent by {member.display_name} in the last {days} days in this channel:\n{context_str}\n"
     )
-    response = ask_openai(f"What is your opinion of {member.display_name}?", system_message=system_message)
+    provider = "openai"
+    if ctx.message.content.split()[2:3] and ctx.message.content.split()[2].lower() in ["grok", "openai"]:
+        provider = ctx.message.content.split()[2].lower()
+    response = ask_openai(f"What is your opinion of {member.display_name}?", system_message=system_message, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -108,6 +127,11 @@ async def most(ctx, *, question: str):
     """Generalized command to ask who is the most X or most likely to do Y in the chat. Handles both a single word or a sentence."""
     num_messages = 100
     await ctx.send(f"Analyzing: {question} (last {num_messages} messages)...")
+    provider = "openai"
+    question_words = question.split()
+    if question_words and question_words[0].lower() in ["grok", "openai"]:
+        provider = question_words[0].lower()
+        question = " ".join(question_words[1:])
     messages = []
     user_message_count = {}
     async for message in ctx.channel.history(limit=num_messages):
@@ -129,14 +153,21 @@ async def most(ctx, *, question: str):
         f"Among the most active users ({', '.join(active_user_names)}), answer the following question: {question}. "
         f"Explain your reasoning as Coonbot."
     )
-    response = ask_openai(prompt, system_message=system_message)
+    response = ask_openai(prompt, system_message=system_message, provider=provider)
     await ctx.send(response)
 @bot.command()
 async def image_opinion(ctx):
-    """Form an opinion on an image (attachment, URL, or reply to an image). Optionally provide a custom prompt."""
+    """Form an opinion on an image (attachment, URL, or reply to an image). Optionally provide a custom prompt. Use 'grok' to analyze with Grok."""
     image_url = None
     custom_prompt = None
+    provider = "openai"
     content_args = ctx.message.content.split()
+
+    # Check for provider keyword
+    if len(content_args) > 1 and content_args[1].lower() == "grok":
+        provider = "grok"
+        # Shift arguments so image URL or prompt comes after 'grok'
+        content_args = [content_args[0]] + content_args[2:]
 
     # Check for attachment first
     if ctx.message.attachments:
@@ -168,7 +199,11 @@ async def image_opinion(ctx):
         return
     await ctx.send("Analyzing image, one sec...")
     try:
-        opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
+        if provider == "grok":
+            from openai_client import image_opinion_grok
+            opinion = image_opinion_grok(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
+        else:
+            opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
         await ctx.send(opinion)
     except Exception as e:
         await ctx.send(f"Error analyzing image: {e}")
