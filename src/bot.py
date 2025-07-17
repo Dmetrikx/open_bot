@@ -27,61 +27,89 @@ async def on_ready():
 
 @bot.command()
 async def ping(ctx):
-    """A simple ping command."""
+    """Check if the bot is responsive."""
     await ctx.send('Pong!')
 
-@bot.command()
-async def ask(ctx, *, prompt: str):
-    """Ask OpenAI or Grok a question and get a response with a defined persona."""
-    await ctx.send('Thinking...')
-    provider = "openai"
-    prompt_words = prompt.split()
-    if prompt_words and prompt_words[0].lower() in ["grok", "openai"]:
-        provider = prompt_words[0].lower()
-        prompt = " ".join(prompt_words[1:])
-    response = await asyncio.to_thread(ask_client, prompt, system_message=PERSONA, model=DEFAULT_OPENAI_MODEL, provider=provider)
-    # Send response in 2000-character pieces
+def extract_provider_and_args(args, default_provider="openai"):
+    """Helper to extract provider and remaining args from a list of arguments."""
+    provider = default_provider
+    if args and args[0].lower() in ["grok", "openai"]:
+        provider = args[0].lower()
+        args = args[1:]
+    return provider, args
+
+async def send_long_response(ctx, response):
+    """Helper to send long responses in 2000-char chunks."""
     for i in range(0, len(response), 2000):
         await ctx.send(response[i:i+2000])
 
 @bot.command()
-async def opinion(ctx, num_messages: int = 10):
-    """Read the last few messages in the channel and form an opinion as the bot persona."""
+async def ask(ctx, *, prompt: str):
+    """Ask a question to the bot persona. Usage: !ask [grok|openai] question"""
+    await ctx.send('Thinking...')
+    args = prompt.split()
+    provider, args = extract_provider_and_args(args)
+    prompt_text = " ".join(args) if args else prompt
+    response = await asyncio.to_thread(
+        ask_client, prompt_text, system_message=PERSONA, model=DEFAULT_OPENAI_MODEL, provider=provider
+    )
+    await send_long_response(ctx, response)
+
+@bot.command()
+async def opinion(ctx, *, arg: str = ""):
+    """Summarize or form an opinion on recent messages. Usage: !opinion [grok|openai] [num_messages]"""
     await ctx.send('Let me think about what everyone has been saying...')
+    args = arg.split()
+    provider, args = extract_provider_and_args(args)
+    num_messages = 10
+    if args and args[0].isdigit():
+        num_messages = int(args[0])
     context_str = await format_channel_history(ctx, num_messages)()
     system_message = (
         f"{PERSONA}\nHere are the last {num_messages} messages in this channel:\n{context_str}\n"
         "Form an opinion or summary about the conversation."
     )
-    provider = "openai"
-    # Check for provider override in command
-    if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
-        provider = ctx.message.content.split()[1].lower()
-    response = await asyncio.to_thread(ask_client, "What is your opinion on the recent conversation?", system_message=system_message, model=DEFAULT_OPENAI_MODEL, provider=provider)
-    for i in range(0, len(response), 2000):
-        await ctx.send(response[i:i+2000])
+    response = await asyncio.to_thread(
+        ask_client, "What is your opinion on the recent conversation?", system_message=system_message,
+        model=DEFAULT_OPENAI_MODEL, provider=provider
+    )
+    await send_long_response(ctx, response)
 
 @bot.command()
-async def who_won(ctx, num_messages: int = 100):
-    """Analyze the last 100 messages and determine who won the arguments."""
+async def who_won(ctx, *, arg: str = ""):
+    """Analyze arguments and determine who won. Usage: !who_won [grok|openai] [num_messages]"""
     await ctx.send('Analyzing the last arguments...')
+    args = arg.split()
+    provider, args = extract_provider_and_args(args)
+    num_messages = 100
+    if args and args[0].isdigit():
+        num_messages = int(args[0])
     context_str = await format_channel_history(ctx, num_messages)()
     system_message = (
         f"{PERSONA}\nHere are the last {num_messages} messages in this channel:\n{context_str}\n"
         "Based on the arguments and discussions, determine who won the arguments and why. "
         "Be specific and fair, and explain your reasoning."
     )
-    provider = "openai"
-    if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
-        provider = ctx.message.content.split()[1].lower()
-    response = ask_client("Who won the arguments in the recent conversation?", system_message=system_message, model=DEFAULT_OPENAI_MODEL, provider=provider)
-    await ctx.send(response)
+    response = await asyncio.to_thread(
+        ask_client, "Who won the arguments in the recent conversation?", system_message=system_message,
+        model=DEFAULT_OPENAI_MODEL, provider=provider
+    )
+    await send_long_response(ctx, response)
 
 @bot.command()
-async def user_opinion(ctx, member: discord.Member, days: int = 3, max_messages: int = 200):
-    """Analyze all messages sent by a user over the last few days and form an opinion on that user."""
+async def user_opinion(ctx, member: discord.Member, *, arg: str = ""):
+    """Form an opinion on a user. Usage: !user_opinion @user [grok|openai] [days] [max_messages]"""
     await ctx.send(f'Analyzing {member.display_name}...')
     from datetime import datetime, timedelta, timezone
+    args = arg.split()
+    provider, args = extract_provider_and_args(args)
+    days = 3
+    max_messages = 200
+    if args and args[0].isdigit():
+        days = int(args[0])
+        args = args[1:]
+    if args and args[0].isdigit():
+        max_messages = int(args[0])
     now = datetime.now(timezone.utc)
     after = now - timedelta(days=days)
     messages = []
@@ -95,22 +123,20 @@ async def user_opinion(ctx, member: discord.Member, days: int = 3, max_messages:
     system_message = (
         f"Here are all the messages sent by {member.display_name} in the last {days} days in this channel:\n{context_str}\n"
     )
-    provider = "openai"
-    if ctx.message.content.split()[2:3] and ctx.message.content.split()[2].lower() in ["grok", "openai"]:
-        provider = ctx.message.content.split()[2].lower()
-    response = ask_client(f"What is your opinion of {member.display_name}?", system_message=system_message, model=DEFAULT_OPENAI_MODEL, provider=provider)
-    await ctx.send(response)
+    response = await asyncio.to_thread(
+        ask_client, f"What is your opinion of {member.display_name}?", system_message=system_message,
+        model=DEFAULT_OPENAI_MODEL, provider=provider
+    )
+    await send_long_response(ctx, response)
 
 @bot.command()
 async def most(ctx, *, question: str):
-    """Generalized command to ask who is the most X or most likely to do Y in the chat. Handles both a single word or a sentence."""
+    """Ask who is the most X or most likely to do Y. Usage: !most [grok|openai] question"""
     num_messages = 100
     await ctx.send(f"Analyzing: {question} (last {num_messages} messages)...")
-    provider = "openai"
-    question_words = question.split()
-    if question_words and question_words[0].lower() in ["grok", "openai"]:
-        provider = question_words[0].lower()
-        question = " ".join(question_words[1:])
+    args = question.split()
+    provider, args = extract_provider_and_args(args)
+    question_text = " ".join(args) if args else question
     messages = []
     user_message_count = {}
     async for message in ctx.channel.history(limit=num_messages):
@@ -118,61 +144,56 @@ async def most(ctx, *, question: str):
             continue
         messages.append(f"{message.author.display_name}: {message.content}")
         user_message_count[message.author.display_name] = user_message_count.get(message.author.display_name, 0) + 1
-    # Get the most active users (top 5)
     active_users = sorted(user_message_count.items(), key=lambda x: x[1], reverse=True)[:5]
     active_user_names = [user for user, _ in active_users]
     context_str = "\n".join(messages)
-    # Detect if question is a single word or a sentence
-    if len(question.split()) == 1:
-        prompt = f"Who is the most {question} in the recent conversation?"
+    if len(question_text.split()) == 1:
+        prompt = f"Who is the most {question_text} in the recent conversation?"
     else:
-        prompt = question
+        prompt = question_text
     system_message = (
         f"{PERSONA}\nHere are the last {num_messages} messages in this channel:\n{context_str}\n"
-        f"Among the most active users ({', '.join(active_user_names)}), answer the following question: {question}. "
+        f"Among the most active users ({', '.join(active_user_names)}), answer the following question: {question_text}. "
         f"Explain your reasoning as Coonbot."
     )
-    response = ask_client(prompt, system_message=system_message, model=DEFAULT_OPENAI_MODEL, provider=provider)
-    await ctx.send(response)
+    response = await asyncio.to_thread(
+        ask_client, prompt, system_message=system_message, model=DEFAULT_OPENAI_MODEL, provider=provider
+    )
+    await send_long_response(ctx, response)
+
 @bot.command()
-async def image_opinion(ctx):
-    """Form an opinion on an image (attachment, URL, or reply to an image). Optionally provide a custom prompt. Use 'grok' to analyze with Grok."""
+async def image_opinion(ctx, *, arg: str = ""):
+    """Form an opinion on an image. Usage: !image_opinion [grok|openai] [image_url|prompt]"""
     image_url = None
     custom_prompt = None
-    provider = "openai"
+    args = arg.split()
+    provider, args = extract_provider_and_args(args)
     content_args = ctx.message.content.split()
-
-    # Check for provider keyword
-    if len(content_args) > 1 and content_args[1].lower() == "grok":
-        provider = "grok"
-        # Shift arguments so image URL or prompt comes after 'grok'
-        content_args = [content_args[0]] + content_args[2:]
-
     # Check for attachment first
     if ctx.message.attachments:
         image_url = ctx.message.attachments[0].url
-        if len(content_args) > 1:
-            custom_prompt = " ".join(content_args[1:])
+        if args:
+            custom_prompt = " ".join(args)
     # If replying to a message with an image
     elif ctx.message.reference:
         try:
             replied_msg = await ctx.channel.fetch_message(ctx.message.reference.message_id)
             if replied_msg.attachments:
                 image_url = replied_msg.attachments[0].url
-            if len(content_args) > 1:
-                custom_prompt = " ".join(content_args[1:])
+            if args:
+                custom_prompt = " ".join(args)
         except Exception as e:
             await ctx.send(f"Could not fetch replied message: {e}")
             return
-    # If no attachment or reply, check for image URL in message content
-    elif len(content_args) > 1:
-        possible_url = content_args[1]
+    # If no attachment or reply, check for image URL in args
+    elif args:
+        possible_url = args[0]
         if possible_url.startswith("http://") or possible_url.startswith("https://"):
             image_url = possible_url
-            if len(content_args) > 2:
-                custom_prompt = " ".join(content_args[2:])
+            if len(args) > 1:
+                custom_prompt = " ".join(args[1:])
         else:
-            custom_prompt = " ".join(content_args[1:])
+            custom_prompt = " ".join(args)
     if not image_url:
         await ctx.send("Please attach an image, provide a valid image URL (starting with http/https), or reply to a message with an image.")
         return
@@ -183,15 +204,15 @@ async def image_opinion(ctx):
             opinion = image_opinion_grok(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
         else:
             opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
-        await ctx.send(opinion)
+        await send_long_response(ctx, opinion)
     except Exception as e:
         await ctx.send(f"Error analyzing image: {e}")
-# Add more commands or cogs here for extensibility
+
 @bot.command()
 @commands.is_owner()
 async def clear_commands(ctx):
     """Clear all global slash commands from Discord."""
-    bot.tree.clear_commands(guild=None)  # Remove await here
+    bot.tree.clear_commands(guild=None)
     await bot.tree.sync()
     await ctx.send("Cleared all global slash commands.")
 
