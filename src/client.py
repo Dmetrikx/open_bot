@@ -7,7 +7,7 @@ from config import OPENAI_API_KEY
 from xai_sdk import Client as XaiClient
 from xai_sdk.chat import user as xai_user, system as xai_system,image
 
-def ask_openai(prompt, system_message="You are a helpful assistant.", model="gpt-3.5-turbo-0125", max_tokens=200, provider="openai"):
+def ask(prompt, system_message="You are a helpful assistant.", model="gpt-3.5-turbo-0125", max_tokens=200, provider="openai"):
     """Send a prompt to OpenAI or Grok with a system message (persona) and return the response text."""
     if provider == "grok":
         if XaiClient is None:

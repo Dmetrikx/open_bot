@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from config import DISCORD_TOKEN
-from openai_client import ask_openai, image_opinion_openai
+from client import ask, image_opinion_openai
 import asyncio
 from personas import OPEN_AI_PERSONA as PERSONA
 
@@ -38,7 +38,7 @@ async def ask(ctx, *, prompt: str):
     if prompt_words and prompt_words[0].lower() in ["grok", "openai"]:
         provider = prompt_words[0].lower()
         prompt = " ".join(prompt_words[1:])
-    response = await asyncio.to_thread(ask_openai, prompt, system_message=PERSONA, model="gpt-3.5-turbo-0125", provider=provider)
+    response = await asyncio.to_thread(ask, prompt, system_message=PERSONA, model="gpt-3.5-turbo-0125", provider=provider)
     # Send response in 2000-character pieces
     for i in range(0, len(response), 2000):
         await ctx.send(response[i:i+2000])
@@ -56,7 +56,7 @@ async def opinion(ctx, num_messages: int = 10):
     # Check for provider override in command
     if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
         provider = ctx.message.content.split()[1].lower()
-    response = await asyncio.to_thread(ask_openai, "What is your opinion on the recent conversation?", system_message=system_message, model="gpt-3.5-turbo-0125", provider=provider)
+    response = await asyncio.to_thread(ask, "What is your opinion on the recent conversation?", system_message=system_message, model="gpt-3.5-turbo-0125", provider=provider)
     for i in range(0, len(response), 2000):
         await ctx.send(response[i:i+2000])
 
@@ -73,7 +73,7 @@ async def who_won(ctx, num_messages: int = 100):
     provider = "openai"
     if ctx.message.content.split()[1:2] and ctx.message.content.split()[1].lower() in ["grok", "openai"]:
         provider = ctx.message.content.split()[1].lower()
-    response = ask_openai("Who won the arguments in the recent conversation?", system_message=system_message, provider=provider)
+    response = ask("Who won the arguments in the recent conversation?", system_message=system_message, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -97,7 +97,7 @@ async def user_opinion(ctx, member: discord.Member, days: int = 3, max_messages:
     provider = "openai"
     if ctx.message.content.split()[2:3] and ctx.message.content.split()[2].lower() in ["grok", "openai"]:
         provider = ctx.message.content.split()[2].lower()
-    response = ask_openai(f"What is your opinion of {member.display_name}?", system_message=system_message, provider=provider)
+    response = ask(f"What is your opinion of {member.display_name}?", system_message=system_message, provider=provider)
     await ctx.send(response)
 
 @bot.command()
@@ -131,7 +131,7 @@ async def most(ctx, *, question: str):
         f"Among the most active users ({', '.join(active_user_names)}), answer the following question: {question}. "
         f"Explain your reasoning as Coonbot."
     )
-    response = ask_openai(prompt, system_message=system_message, provider=provider)
+    response = ask(prompt, system_message=system_message, provider=provider)
     await ctx.send(response)
 @bot.command()
 async def image_opinion(ctx):
@@ -178,7 +178,7 @@ async def image_opinion(ctx):
     await ctx.send("Analyzing image, one sec...")
     try:
         if provider == "grok":
-            from openai_client import image_opinion_grok
+            from client import image_opinion_grok
             opinion = image_opinion_grok(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
         else:
             opinion = image_opinion_openai(image_url, system_message=PERSONA, custom_prompt=custom_prompt)
