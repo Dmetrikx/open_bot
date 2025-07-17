@@ -8,7 +8,7 @@ from constants import DEFAULT_OPENAI_MODEL, DEFAULT_OPENAI_VISION_MODEL, DEFAULT
 from xai_sdk import Client as XaiClient
 from xai_sdk.chat import user as xai_user, system as xai_system,image
 
-def ask(prompt, system_message="You are a helpful assistant.", model=DEFAULT_OPENAI_MODEL, max_tokens=DEFAULT_MAX_TOKENS, provider="openai"):
+def ask_client(prompt, system_message="You are a helpful assistant.", model=DEFAULT_OPENAI_MODEL, max_tokens=DEFAULT_MAX_TOKENS, provider="openai"):
     """Send a prompt to OpenAI or Grok with a system message (persona) and return the response text."""
     if provider == "grok":
         if XaiClient is None:
