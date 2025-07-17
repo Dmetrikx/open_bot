@@ -4,6 +4,7 @@ from config import DISCORD_TOKEN
 from client import ask, image_opinion_openai
 import asyncio
 from personas import OPEN_AI_PERSONA as PERSONA
+from constants import DEFAULT_OPENAI_MODEL
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -38,7 +39,7 @@ async def ask(ctx, *, prompt: str):
     if prompt_words and prompt_words[0].lower() in ["grok", "openai"]:
         provider = prompt_words[0].lower()
         prompt = " ".join(prompt_words[1:])
-    response = await asyncio.to_thread(ask, prompt, system_message=PERSONA, model="gpt-3.5-turbo-0125", provider=provider)
+    response = await asyncio.to_thread(ask, prompt, system_message=PERSONA, model=DEFAULT_OPENAI_MODEL, provider=provider)
     # Send response in 2000-character pieces
     for i in range(0, len(response), 2000):
         await ctx.send(response[i:i+2000])
