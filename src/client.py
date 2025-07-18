@@ -2,7 +2,7 @@ import openai
 import base64
 import requests
 import os
-from config import OPENAI_API_KEY
+from config import OPENAI_API_KEY, XAI_API_KEY
 from constants import DEFAULT_OPENAI_MODEL, DEFAULT_OPENAI_VISION_MODEL, DEFAULT_MAX_TOKENS
 
 from xai_sdk import Client as XaiClient
@@ -13,10 +13,9 @@ def ask_client(prompt, system_message="You are a helpful assistant.", model=DEFA
     if provider == "grok":
         if XaiClient is None:
             raise ImportError("xai-sdk is not installed. Please install it to use Grok.")
-        xai_api_key = os.getenv("XAI_API_KEY")
-        if not xai_api_key:
+        if not XAI_API_KEY:
             raise ValueError("XAI_API_KEY environment variable not set.")
-        client = XaiClient(api_key=xai_api_key)
+        client = XaiClient(api_key=XAI_API_KEY)
         chat = client.chat.create(model="grok-4")
         chat.append(xai_system(system_message))
         chat.append(xai_user(prompt))
@@ -75,8 +74,7 @@ def image_opinion_grok(image_url, system_message="You are a helpful assistant.",
     """Send an image (from URL or attachment) to Grok (xAI SDK) and return the response text. Optionally use a custom prompt and persona."""
     if XaiClient is None:
         raise ImportError("xai-sdk is not installed. Please install it to use Grok.")
-    xai_api_key = os.getenv("XAI_API_KEY")
-    if not xai_api_key:
+    if not XAI_API_KEY:
         raise ValueError("XAI_API_KEY environment variable not set.")
     try:
         img_response = requests.get(image_url)
@@ -84,7 +82,7 @@ def image_opinion_grok(image_url, system_message="You are a helpful assistant.",
         base64_image = base64.b64encode(img_response.content).decode('utf-8')
     except Exception as e:
         return f"Error downloading or encoding image: {e}"
-    client = XaiClient(api_key=xai_api_key)
+    client = XaiClient(api_key=XAI_API_KEY)
     chat = client.chat.create(model="grok-4")
     chat.append(xai_system(system_message))
     prompt_text = custom_prompt if custom_prompt else "What's in this image?"

@@ -7,6 +7,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 DISCORD_POLITICS_CHANNEL = os.getenv('DISCORD_POLITICS_CHANNEL', 'politics')
+XAI_API_KEY = os.getenv('XAI_API_KEY')
 
 # UNUSED: YouTube API credentials
 # YOUTUBE_CLIENT_ID = os.getenv('YOUTUBE_CLIENT_ID')
