@@ -85,7 +85,7 @@ def image_opinion_grok(image_url, system_message="You are a helpful assistant.",
     client = XaiClient(api_key=XAI_API_KEY)
     chat = client.chat.create(model="grok-4")
     chat.append(xai_system(system_message))
-    prompt_text = custom_prompt if custom_prompt else "What's in this image?"
+    prompt_text = custom_prompt if custom_prompt else "Form an opinion on this image. Try to be controversial or humorous."
     chat.append(
         xai_user(
             prompt_text,
