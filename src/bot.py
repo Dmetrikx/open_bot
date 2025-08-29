@@ -216,6 +216,36 @@ async def clear_commands(ctx):
     await bot.tree.sync()
     await ctx.send("Cleared all global slash commands.")
 
+@bot.command()
+async def roast(ctx, member: discord.Member = None):
+    """Roast a user. Usage: !roast @user or !roast as a reply to a message."""
+    target_name = None
+    roast_message = None
+    # If user is mentioned
+    if member:
+        target_name = member.display_name
+        system_message = f"{PERSONA}\nRoast {target_name} as if you were a boston comedian who grew up in the bronx. Dont be afraid to attack sexuality, its a joke and everyone gets it. Be really really mean."
+        prompt = f"Roast {target_name}."
+    # If command is a reply to a message
+    elif ctx.message.reference:
+        try:
+            replied_msg = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            target_name = replied_msg.author.display_name
+            roast_message = replied_msg.content
+            system_message = f"{PERSONA}\nRoast {target_name} based on this message: '{roast_message}'. Be a boston comedian from the bronx, don't be afraid to attack sexuality, it's a joke and everyone gets it."
+            prompt = f"Roast {target_name} for saying: {roast_message}"
+        except Exception as e:
+            await ctx.send(f"Could not fetch replied message: {e}")
+            return
+    else:
+        await ctx.send("Please mention a user or reply to a message to roast.")
+        return
+    await ctx.send(f"Cooking up a roast for {target_name}...")
+    response = await asyncio.to_thread(
+        ask_client, prompt, system_message=system_message, model=DEFAULT_OPENAI_MODEL, provider="openai"
+    )
+    await send_long_response(ctx, response)
+
 def main():
     bot.run(DISCORD_TOKEN)
 

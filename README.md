@@ -47,6 +47,11 @@ Form an opinion on an image by:
 - Replying to a message with an image attachment and typing `!image_opinion` (optionally add a custom prompt after the command)
   - Example: *(reply to an image)* `!image_opinion Be controversial about this photo.`
 
+### `!roast <@user>` or reply to a message
+Roast a user in a witty, funny, and lighthearted way. You can either mention a user or reply to their message.
+- Example: `!roast @Alice`
+- Example: *(reply to a message)* `!roast`
+
 ### Provider Override (OpenAI/Grok)
 You can override the AI provider for any command that uses language models by prefixing your prompt with `grok` or `openai`:
 - Example: `!ask grok Who are you?` (uses Grok)
