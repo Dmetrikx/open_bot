@@ -1,14 +1,16 @@
-# Discord OpenAI Bot
-A scalable Discord bot using Python, Discord.py, and OpenAI.
+# Discord OpenAI Bot (Go Version)
 
-**Also available in Go!** See the [go/](go/) directory for the Go implementation.
+A Go implementation of the Discord bot using DiscordGo and OpenAI/Grok APIs.
 
 ## Features
+
 - Modular structure for easy feature expansion
 - OpenAI integration for intelligent, persona-driven responses
+- Grok (xAI) integration as an alternative AI provider
 - Simple command handler (e.g., `!ping`, `!ask`, `!opinion`, `!who_won`)
 
 ## Commands & Usage
+
 Interact with the bot using the following commands in any Discord channel where the bot is present:
 
 ### `!ping`
@@ -67,41 +69,110 @@ You can override the AI provider for any command that uses language models by pr
 If no provider is specified, OpenAI is used by default.
 
 ## Setup
-1. Copy your environment variables to a `.env` file (see `.env.example`).
+
+### Prerequisites
+- Go 1.21 or higher
+- Discord Bot Token
+- OpenAI API Key
+- (Optional) xAI API Key for Grok support
+
+### Installation
+
+1. Copy your environment variables to a `.env` file in the root directory (see `.env.example` if available).
+   
+   Required environment variables:
+   ```
+   DISCORD_TOKEN=your_discord_bot_token_here
+   OPENAI_API_KEY=your_openai_api_key_here
+   ```
+   
+   Optional environment variables:
+   ```
+   XAI_API_KEY=your_xai_api_key_here
+   DISCORD_POLITICS_CHANNEL=politics
+   ```
+
 2. Install dependencies:
    ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the bot:
-   ```bash
-   python -m src.bot
+   cd go
+   go mod download
    ```
 
+3. Build the bot:
+   ```bash
+   go build -o discord-bot
+   ```
+
+4. Run the bot:
+   ```bash
+   ./discord-bot
+   ```
+
+   Or run directly without building:
+   ```bash
+   go run .
+   ```
 
 ## Project Structure
-- `src/` - Main source code (commands, configuration, OpenAI integration)
-- `tests/` - Unit tests
 
+```
+go/
+├── main.go       - Entry point, initializes and starts the bot
+├── bot.go        - Discord bot logic and command handlers
+├── client.go     - OpenAI and Grok API client implementations
+├── config.go     - Configuration management
+├── constants.go  - Application constants
+├── personas.go   - Bot persona definitions
+├── go.mod        - Go module definition
+└── go.sum        - Go module checksums
+```
 
 ## Adding Features
-Add new commands or cogs in the `src/` directory for extensibility.
 
+Add new commands in the `bot.go` file by:
+1. Adding a new case in the `messageHandler` switch statement
+2. Implementing the command handler function
+
+## Dependencies
+
+- [discordgo](https://github.com/bwmarrin/discordgo) - Discord API wrapper
+- [go-openai](https://github.com/sashabaranov/go-openai) - OpenAI API client
+- [godotenv](https://github.com/joho/godotenv) - Environment variable loader
 
 ## Notes
+
 - The `.env` file is gitignored for security.
-- See `src/bot.py` for example commands and persona prompts.
+- The bot uses the persona defined in `personas.go` to respond as "Coonbot," a political raccoon from Boston.
+- Grok support requires the `XAI_API_KEY` environment variable to be set.
 
+## Building for Different Platforms
 
-### Setup for Grok
-To use Grok (including for image analysis), you must install `xai-sdk` and set the `XAI_API_KEY` environment variable. See requirements.txt for details.
+Build for Linux:
+```bash
+GOOS=linux GOARCH=amd64 go build -o discord-bot-linux
+```
 
+Build for Windows:
+```bash
+GOOS=windows GOARCH=amd64 go build -o discord-bot.exe
+```
 
-## Go Version
-A complete Go implementation of this bot is available in the [go/](go/) directory. The Go version:
-- Has feature parity with the Python version
-- Uses [discordgo](https://github.com/bwmarrin/discordgo) for Discord integration
-- Uses [go-openai](https://github.com/sashabaranov/go-openai) for OpenAI API
-- Includes all commands: `!ping`, `!ask`, `!opinion`, `!who_won`, `!user_opinion`, `!most`, `!image_opinion`, `!roast`
-- Supports both OpenAI and Grok providers
+Build for macOS:
+```bash
+GOOS=darwin GOARCH=amd64 go build -o discord-bot-macos
+```
 
-See [go/README.md](go/README.md) for setup and usage instructions.
+## Troubleshooting
+
+### Bot doesn't respond
+- Ensure the bot has proper permissions in your Discord server
+- Check that Message Content Intent is enabled in the Discord Developer Portal
+- Verify your `DISCORD_TOKEN` is correct
+
+### OpenAI API errors
+- Check that your `OPENAI_API_KEY` is valid and has sufficient credits
+- Ensure you're using a model you have access to
+
+### Grok API errors
+- Verify your `XAI_API_KEY` is set correctly
+- Ensure you have access to Grok API

@@ -1,1 +1,16 @@
 .env
+
+# Go build artifacts
+go/discord-bot
+go/discord-bot-*
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test files
+*.test
+
+# Go coverage
+*.out
