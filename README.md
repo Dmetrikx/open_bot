@@ -1,6 +1,8 @@
 # Discord OpenAI Bot
 A scalable Discord bot using Python, Discord.py, and OpenAI.
 
+**Also available in Go!** See the [go/](go/) directory for the Go implementation.
+
 ## Features
 - Modular structure for easy feature expansion
 - OpenAI integration for intelligent, persona-driven responses
@@ -92,3 +94,14 @@ Add new commands or cogs in the `src/` directory for extensibility.
 
 ### Setup for Grok
 To use Grok (including for image analysis), you must install `xai-sdk` and set the `XAI_API_KEY` environment variable. See requirements.txt for details.
+
+
+## Go Version
+A complete Go implementation of this bot is available in the [go/](go/) directory. The Go version:
+- Has feature parity with the Python version
+- Uses [discordgo](https://github.com/bwmarrin/discordgo) for Discord integration
+- Uses [go-openai](https://github.com/sashabaranov/go-openai) for OpenAI API
+- Includes all commands: `!ping`, `!ask`, `!opinion`, `!who_won`, `!user_opinion`, `!most`, `!image_opinion`, `!roast`
+- Supports both OpenAI and Grok providers
+
+See [go/README.md](go/README.md) for setup and usage instructions.
