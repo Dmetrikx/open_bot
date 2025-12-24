@@ -416,7 +416,7 @@ func (b *Bot) handleImageOpinion(s *discordgo.Session, m *discordgo.MessageCreat
 			prompt := strings.Join(args, " ")
 			customPrompt = &prompt
 		}
-	} else if m.Reference != nil {
+	} else if m.MessageReference != nil {
 		// If replying to a message
 		refMsg, err := s.ChannelMessage(m.ChannelID, m.MessageReference.MessageID)
 		if err != nil {
@@ -488,7 +488,7 @@ func (b *Bot) handleRoast(s *discordgo.Session, m *discordgo.MessageCreate, args
 		systemMessage = fmt.Sprintf("%s\nRoast %s as if you were a boston comedian who grew up in the bronx. "+
 			"Dont be afraid to attack sexuality, its a joke and everyone gets it. Be really really mean.", OpenAIPersona, targetName)
 		prompt = fmt.Sprintf("Roast %s.", targetName)
-	} else if m.Reference != nil {
+	} else if m.MessageReference != nil {
 		// If command is a reply to a message
 		refMsg, err := s.ChannelMessage(m.ChannelID, m.MessageReference.MessageID)
 		if err != nil {
